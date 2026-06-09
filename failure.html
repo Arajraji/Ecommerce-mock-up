@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payment Failed — MockStore</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --bg:#0f0f0f; --surface:#1a1a1a; --border:#2a2a2a; --accent:#ff5555; --text:#f0f0f0; --muted:#888; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px; }
+    .card { max-width:520px; width:100%; text-align:center; }
+    .icon { font-size:80px; margin-bottom:24px; }
+    h1 { font-family:'Syne',sans-serif; font-size:40px; font-weight:800; letter-spacing:-2px; margin-bottom:8px; color:var(--accent); }
+    .subtitle { color:var(--muted); font-size:15px; margin-bottom:40px; }
+    .detail-box { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:28px; margin-bottom:28px; text-align:left; }
+    .detail-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px; }
+    .detail-row:last-child { border-bottom:none; }
+    .detail-label { color:var(--muted); }
+    .detail-value { font-weight:500; }
+    .btn-group { display:flex; gap:12px; justify-content:center; }
+    .retry-btn { background:var(--accent); color:#fff; border:none; padding:16px 32px; font-family:'Syne',sans-serif; font-weight:700; font-size:14px; cursor:pointer; border-radius:4px; text-decoration:none; display:inline-block; }
+    .back-btn { background:transparent; color:var(--text); border:1px solid var(--border); padding:16px 32px; font-family:'Syne',sans-serif; font-weight:700; font-size:14px; cursor:pointer; border-radius:4px; text-decoration:none; display:inline-block; }
+    .error-codes { margin-top:24px; background:#1a0a0a; border:1px solid #3a1a1a; border-radius:4px; padding:16px; text-align:left; }
+    .error-codes h4 { font-family:'Syne',sans-serif; font-size:11px; letter-spacing:1px; color:#f87171; margin-bottom:10px; text-transform:uppercase; }
+    .error-codes pre { font-family:monospace; font-size:11px; color:#fca5a5; white-space:pre-wrap; line-height:1.5; }
+    .test-note { margin-top:20px; color:var(--muted); font-size:12px; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">❌</div>
+  <h1>Payment Failed</h1>
+  <p class="subtitle">The transaction could not be completed.</p>
+
+  <div class="detail-box">
+    <div class="detail-row">
+      <span class="detail-label">Status</span>
+      <span class="detail-value" style="color:#ff5555">● Declined</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Error Code</span>
+      <span class="detail-value" id="errorCode">—</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Reason</span>
+      <span class="detail-value" id="errorReason">—</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Order Reference</span>
+      <span class="detail-value" id="orderRef">—</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Timestamp</span>
+      <span class="detail-value" id="timestamp">—</span>
+    </div>
+  </div>
+
+  <div class="error-codes">
+    <h4>📥 HyperPay Error Parameters</h4>
+    <pre id="errorParams">Loading...</pre>
+  </div>
+
+  <br/><br/>
+  <div class="btn-group">
+    <a href="checkout.html" class="retry-btn">Try Again</a>
+    <a href="index.html" class="back-btn">Back to Store</a>
+  </div>
+  <p class="test-note">Use test card <strong>4111 1111 1111 1111</strong> for a successful transaction.</p>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const payload = JSON.parse(sessionStorage.getItem('checkoutPayload') || '{}');
+
+  document.getElementById('errorCode').textContent =
+    params.get('resultCode') || '800.100.151 (test decline)';
+  document.getElementById('errorReason').textContent =
+    params.get('resultDescription') || 'Transaction declined by test simulator';
+  document.getElementById('orderRef').textContent =
+    params.get('merchantTransactionId') || payload.merchantTransactionId || 'N/A';
+  document.getElementById('timestamp').textContent =
+    new Date().toLocaleString('en-SA', { timeZone: 'Asia/Riyadh' });
+
+  const allParams = {};
+  for (const [k, v] of params.entries()) allParams[k] = v;
+  document.getElementById('errorParams').textContent =
+    Object.keys(allParams).length > 0
+      ? JSON.stringify(allParams, null, 2)
+      : '(No URL parameters — HyperPay will pass error codes in production)';
+</script>
+</body>
+</html>

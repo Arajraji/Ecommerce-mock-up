@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payment Successful — MockStore</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --bg:#0f0f0f; --surface:#1a1a1a; --border:#2a2a2a; --accent:#e8ff47; --text:#f0f0f0; --muted:#888; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px; }
+    .card { max-width:520px; width:100%; text-align:center; }
+    .icon { font-size:80px; margin-bottom:24px; animation: popIn 0.5s ease; }
+    @keyframes popIn { from { transform:scale(0.5); opacity:0; } to { transform:scale(1); opacity:1; } }
+    h1 { font-family:'Syne',sans-serif; font-size:40px; font-weight:800; letter-spacing:-2px; margin-bottom:8px; color:var(--accent); }
+    .subtitle { color:var(--muted); font-size:15px; margin-bottom:40px; }
+    .detail-box { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:28px; margin-bottom:28px; text-align:left; }
+    .detail-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px; }
+    .detail-row:last-child { border-bottom:none; }
+    .detail-label { color:var(--muted); }
+    .detail-value { font-weight:500; }
+    .detail-value.highlight { color:var(--accent); font-family:'Syne',sans-serif; font-weight:700; }
+    .back-btn { background:var(--accent); color:#000; border:none; padding:16px 40px; font-family:'Syne',sans-serif; font-weight:700; font-size:14px; cursor:pointer; border-radius:4px; text-decoration:none; display:inline-block; }
+    .back-btn:hover { opacity:0.85; }
+    .test-note { margin-top:20px; color:var(--muted); font-size:12px; }
+    .hp-params { margin-top:24px; background:#0a1a0a; border:1px solid #1a3a1a; border-radius:4px; padding:16px; text-align:left; }
+    .hp-params h4 { font-family:'Syne',sans-serif; font-size:11px; letter-spacing:1px; color:#4ade80; margin-bottom:10px; text-transform:uppercase; }
+    .hp-params pre { font-family:monospace; font-size:11px; color:#86efac; white-space:pre-wrap; line-height:1.5; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">✅</div>
+  <h1>Payment Successful</h1>
+  <p class="subtitle">Your test transaction was processed successfully.</p>
+
+  <div class="detail-box">
+    <div class="detail-row">
+      <span class="detail-label">Status</span>
+      <span class="detail-value" style="color:#4ade80">● Approved</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Order Reference</span>
+      <span class="detail-value" id="orderRef">—</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Amount Charged</span>
+      <span class="detail-value highlight" id="orderAmount">— SAR</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Currency</span>
+      <span class="detail-value">SAR</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">HyperPay Result Code</span>
+      <span class="detail-value" id="resultCode">—</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Timestamp</span>
+      <span class="detail-value" id="timestamp">—</span>
+    </div>
+  </div>
+
+  <div class="hp-params">
+    <h4>📥 HyperPay Callback Parameters</h4>
+    <pre id="callbackParams">Loading URL parameters...</pre>
+  </div>
+
+  <br/><br/>
+  <a href="index.html" class="back-btn">← Back to Store</a>
+  <p class="test-note">This was a test transaction. No real payment was made.</p>
+</div>
+
+<script>
+  // HyperPay appends result params to the success URL
+  const params = new URLSearchParams(window.location.search);
+  const payload = JSON.parse(sessionStorage.getItem('checkoutPayload') || '{}');
+
+  document.getElementById('orderRef').textContent =
+    params.get('merchantTransactionId') || payload.merchantTransactionId || 'N/A';
+  document.getElementById('orderAmount').textContent =
+    (params.get('amount') || payload.amount || '—') + ' SAR';
+  document.getElementById('resultCode').textContent =
+    params.get('resultCode') || '000.000.000 (test success)';
+  document.getElementById('timestamp').textContent =
+    new Date().toLocaleString('en-SA', { timeZone: 'Asia/Riyadh' });
+
+  // Show all URL params HyperPay sent back
+  const allParams = {};
+  for (const [k, v] of params.entries()) allParams[k] = v;
+  document.getElementById('callbackParams').textContent =
+    Object.keys(allParams).length > 0
+      ? JSON.stringify(allParams, null, 2)
+      : '(No URL parameters — HyperPay will pass these in production)';
+</script>
+</body>
+</html>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MockStore — Test Shop</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: #2a2a2a;
+      --accent: #e8ff47;
+      --text: #f0f0f0;
+      --muted: #888;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 48px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--accent); }
+    .cart-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .cart-count {
+      background: var(--accent);
+      color: #000;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      border-radius: 50%;
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hero {
+      padding: 64px 48px 32px;
+    }
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -2px;
+      margin-bottom: 8px;
+    }
+    .hero p { color: var(--muted); font-size: 14px; }
+    .badge {
+      display: inline-block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-size: 11px;
+      font-family: 'Syne', sans-serif;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      margin: 0 48px;
+      border: 1px solid var(--border);
+    }
+    .product-card {
+      background: var(--bg);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: background 0.2s;
+    }
+    .product-card:hover { background: var(--surface); }
+    .product-image {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: var(--surface);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+    }
+    .product-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+    }
+    .product-desc { color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .product-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+    }
+    .price {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .price span { font-size: 13px; color: var(--muted); font-family: 'DM Sans'; font-weight: 300; }
+    .add-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 20px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .add-btn:hover {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+      font-weight: 500;
+    }
+    .add-btn.added {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+    .cart-panel {
+      margin: 32px 48px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .cart-header {
+      background: var(--surface);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .cart-header h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .cart-items { padding: 0; }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    .cart-item:last-child { border-bottom: none; }
+    .cart-item-name { font-weight: 500; }
+    .cart-item-price { color: var(--accent); font-family: 'Syne', sans-serif; font-weight: 700; }
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      padding: 0 8px;
+      transition: color 0.2s;
+    }
+    .remove-btn:hover { color: #ff5555; }
+    .cart-footer {
+      background: var(--surface);
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border);
+    }
+    .total-label { color: var(--muted); font-size: 13px; }
+    .total-amount {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+    }
+    .checkout-btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 16px 40px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: opacity 0.2s;
+    }
+    .checkout-btn:hover { opacity: 0.85; }
+    .checkout-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .empty-cart {
+      padding: 32px 24px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+    .debug-box {
+      margin: 0 48px 48px;
+      background: #0a1a0a;
+      border: 1px solid #1a3a1a;
+      border-radius: 4px;
+      padding: 20px 24px;
+    }
+    .debug-box h4 {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: #4ade80;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    .debug-box pre {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #86efac;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+    footer {
+      padding: 24px 48px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Mock<span>Store</span></div>
+  <div class="cart-indicator">
+    Cart <div class="cart-count" id="cartCount">0</div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="badge">TEST ENVIRONMENT</div>
+  <h1>Fake Products.<br>Real Checkout.</h1>
+  <p>This store is for testing HyperPay integration. No real orders will be placed.</p>
+</section>
+
+<section class="products" id="productGrid"></section>
+
+<section class="cart-panel">
+  <div class="cart-header">
+    <h3>Cart Summary</h3>
+    <span style="color:var(--muted);font-size:13px;" id="itemCount">0 items</span>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <div class="empty-cart">Your cart is empty. Add a product above.</div>
+  </div>
+  <div class="cart-footer">
+    <div>
+      <div class="total-label">Total (SAR)</div>
+      <div class="total-amount" id="totalAmount">0.00</div>
+    </div>
+    <button class="checkout-btn" id="checkoutBtn" disabled onclick="proceedToCheckout()">
+      Proceed to Checkout →
+    </button>
+  </div>
+</section>
+
+<section class="debug-box">
+  <h4>📦 Payload Preview — What will be sent to HyperPay</h4>
+  <pre id="payloadPreview">{ Add items to your cart to see the checkout payload }</pre>
+</section>
+
+<footer>MockStore · Test Environment · HyperPay Integration · No real transactions</footer>
+
+<script>
+  // ─── PRODUCTS ───────────────────────────────────────────────
+  const PRODUCTS = [
+    {
+      id: "prod_001",
+      name: "Wireless Headphones",
+      desc: "Premium noise-cancelling over-ear headphones with 40hr battery life.",
+      price: 299.00,
+      emoji: "🎧"
+    },
+    {
+      id: "prod_002",
+      name: "Mechanical Keyboard",
+      desc: "TKL layout, tactile switches, aluminum body. Built to last.",
+      price: 449.00,
+      emoji: "⌨️"
+    },
+    {
+      id: "prod_003",
+      name: "Desk Lamp Pro",
+      desc: "LED, adjustable color temperature, USB-C charging port built in.",
+      price: 189.00,
+      emoji: "💡"
+    }
+  ];
+
+  // ─── STATE ──────────────────────────────────────────────────
+  let cart = [];
+
+  // ─── RENDER PRODUCTS ────────────────────────────────────────
+  function renderProducts() {
+    const grid = document.getElementById('productGrid');
+    grid.innerHTML = PRODUCTS.map(p => `
+      <div class="product-card">
+        <div class="product-image">${p.emoji}</div>
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-footer">
+          <div class="price">${p.price.toFixed(2)} <span>SAR</span></div>
+          <button class="add-btn" id="btn_${p.id}" onclick="addToCart('${p.id}')">
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ─── CART LOGIC ─────────────────────────────────────────────
+  function addToCart(productId) {
+    const product = PRODUCTS.find(p => p.id === productId);
+    const existing = cart.find(i => i.id === productId);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cart.push({ ...product, qty: 1 });
+    }
+    renderCart();
+    updatePayloadPreview();
+  }
+
+  function removeFromCart(productId) {
+    cart = cart.filter(i => i.id !== productId);
+    renderCart();
+    updatePayloadPreview();
+  }
+
+  function renderCart() {
+    const cartItems = document.getElementById('cartItems');
+    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+    const count = cart.reduce((sum, i) => sum + i.qty, 0);
+
+    document.getElementById('cartCount').textContent = count;
+    document.getElementById('itemCount').textContent = `${count} item${count !== 1 ? 's' : ''}`;
+    document.getElementById('totalAmount').textContent = total.toFixed(2);
+    document.getElementById('checkoutBtn').disabled = cart.length === 0;
+
+    if (cart.length === 0) {
+      cartItems.innerHTML = '<div class="empty-cart">Your cart is empty. Add a product above.</div>';
+      return;
+    }
+
+    cartItems.innerHTML = cart.map(item => `
+      <div class="cart-item">
+        <div>
+          <div class="cart-item-name">${item.emoji} ${item.name}</div>
+          <div style="color:var(--muted);font-size:12px;margin-top:2px;">Qty: ${item.qty}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div class="cart-item-price">${(item.price * item.qty).toFixed(2)} SAR</div>
+          <button class="remove-btn" onclick="removeFromCart('${item.id}')">×</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ─── PAYLOAD PREVIEW ────────────────────────────────────────
+  // This shows exactly what gets sent to HyperPay — transparency for testing
+  function buildPayload() {
+    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+    return {
+      // HyperPay required fields
+      entityId: "YOUR_ENTITY_ID_HERE",          // From HyperPay dashboard
+      amount: total.toFixed(2),                  // Decimal format (not smallest unit for SAR)
+      currency: "SAR",
+      paymentType: "DB",                         // DB = Debit (standard purchase)
+
+      // Order context
+      merchantTransactionId: generateOrderId(),  // Your unique reference
+      descriptor: "MockStore Test Order",
+
+      // Line items (optional but recommended)
+      cart: cart.map(i => ({
+        name: i.name,
+        quantity: i.qty,
+        price: i.price.toFixed(2)
+      })),
+
+      // Redirect URLs
+      shopperResultUrl: window.location.origin + "/success.html"
+    };
+  }
+
+  function updatePayloadPreview() {
+    const preview = document.getElementById('payloadPreview');
+    if (cart.length === 0) {
+      preview.textContent = '{ Add items to your cart to see the checkout payload }';
+    } else {
+      preview.textContent = JSON.stringify(buildPayload(), null, 2);
+    }
+  }
+
+  function generateOrderId() {
+    return 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
+  }
+
+  // ─── CHECKOUT ───────────────────────────────────────────────
+  function proceedToCheckout() {
+    const payload = buildPayload();
+    console.log('=== HYPERPAY CHECKOUT PAYLOAD ===');
+    console.log(JSON.stringify(payload, null, 2));
+    console.log('=================================');
+
+    // Save to sessionStorage so checkout.html can read it
+    sessionStorage.setItem('checkoutPayload', JSON.stringify(payload));
+    sessionStorage.setItem('cartSummary', JSON.stringify(cart));
+
+    window.location.href = 'checkout.html';
+  }
+
+  // ─── INIT ───────────────────────────────────────────────────
+  renderProducts();
+  renderCart();
+</script>
+</body>
+</html>

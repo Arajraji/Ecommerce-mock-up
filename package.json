@@ -1,0 +1,16 @@
+{
+  "name": "mock-store",
+  "version": "1.0.0",
+  "description": "Mock e-commerce store for HyperPay checkout testing",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npx nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
