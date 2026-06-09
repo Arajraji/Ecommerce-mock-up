@@ -35,6 +35,13 @@
       letter-spacing: -0.5px;
     }
     .logo span { color: var(--accent); }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .admin-link {
+      color: var(--muted); text-decoration: none; font-size: 12px;
+      padding: 6px 12px; border: 1px solid var(--border); border-radius: 4px;
+      font-family: 'Syne', sans-serif; letter-spacing: 0.5px; transition: all 0.2s;
+    }
+    .admin-link:hover { color: var(--accent); border-color: var(--accent); }
     .cart-indicator {
       display: flex;
       align-items: center;
@@ -256,8 +263,11 @@
 
 <header>
   <div class="logo">Mock<span>Store</span></div>
-  <div class="cart-indicator">
-    Cart <div class="cart-count" id="cartCount">0</div>
+  <div class="header-right">
+    <a href="admin.html" class="admin-link">⚙ Manage Catalogue</a>
+    <div class="cart-indicator">
+      Cart <div class="cart-count" id="cartCount">0</div>
+    </div>
   </div>
 </header>
 
@@ -296,30 +306,21 @@
 <footer>MockStore · Test Environment · HyperPay Integration · No real transactions</footer>
 
 <script>
-  // ─── PRODUCTS ───────────────────────────────────────────────
-  const PRODUCTS = [
-    {
-      id: "prod_001",
-      name: "Wireless Headphones",
-      desc: "Premium noise-cancelling over-ear headphones with 40hr battery life.",
-      price: 299.00,
-      emoji: "🎧"
-    },
-    {
-      id: "prod_002",
-      name: "Mechanical Keyboard",
-      desc: "TKL layout, tactile switches, aluminum body. Built to last.",
-      price: 449.00,
-      emoji: "⌨️"
-    },
-    {
-      id: "prod_003",
-      name: "Desk Lamp Pro",
-      desc: "LED, adjustable color temperature, USB-C charging port built in.",
-      price: 189.00,
-      emoji: "💡"
-    }
+  // ─── PRODUCTS (from localStorage, synced with admin catalogue) ──
+  const CATALOGUE_KEY = 'mockstore_catalogue';
+  const DEFAULT_PRODUCTS = [
+    { id: "prod_001", name: "Wireless Headphones", desc: "Premium noise-cancelling over-ear headphones with 40hr battery life.", price: 299.00, emoji: "🎧", status: "active" },
+    { id: "prod_002", name: "Mechanical Keyboard",  desc: "TKL layout, tactile switches, aluminum body. Built to last.",           price: 449.00, emoji: "⌨️", status: "active" },
+    { id: "prod_003", name: "Desk Lamp Pro",         desc: "LED, adjustable color temperature, USB-C charging port built in.",     price: 189.00, emoji: "💡", status: "active" }
   ];
+
+  function getProducts() {
+    const stored = localStorage.getItem(CATALOGUE_KEY);
+    const all = stored ? JSON.parse(stored) : DEFAULT_PRODUCTS;
+    return all.filter(p => p.status === 'active'); // only show active products
+  }
+
+  let PRODUCTS = getProducts();
 
   // ─── STATE ──────────────────────────────────────────────────
   let cart = [];
