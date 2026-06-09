@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Catalogue Manager — MockStore</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: #2a2a2a;
+      --accent: #e8ff47;
+      --text: #f0f0f0;
+      --muted: #888;
+      --danger: #ff5555;
+      --success: #4ade80;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+    /* ── HEADER ── */
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 48px; border-bottom: 1px solid var(--border);
+    }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; }
+    .logo span { color: var(--accent); }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .nav-link {
+      color: var(--muted); text-decoration: none; font-size: 13px;
+      padding: 8px 16px; border: 1px solid var(--border); border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .nav-link:hover { color: var(--text); border-color: var(--text); }
+    .admin-badge {
+      background: var(--accent); color: #000; font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 11px; letter-spacing: 1px;
+      padding: 4px 10px; border-radius: 4px;
+    }
+
+    /* ── LAYOUT ── */
+    .main { display: grid; grid-template-columns: 1fr 380px; gap: 0; min-height: calc(100vh - 65px); }
+
+    /* ── LEFT: PRODUCT TABLE ── */
+    .table-side { padding: 40px 48px; border-right: 1px solid var(--border); }
+    .section-header {
+      display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px;
+    }
+    .section-header h2 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+    .section-header p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .add-new-btn {
+      background: var(--accent); color: #000; border: none;
+      padding: 12px 24px; font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 13px; cursor: pointer; border-radius: 4px; white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .add-new-btn:hover { opacity: 0.85; }
+
+    /* Table */
+    .product-table { width: 100%; border-collapse: collapse; }
+    .product-table th {
+      text-align: left; padding: 10px 16px; font-size: 11px; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border);
+      font-family: 'Syne', sans-serif; font-weight: 400;
+    }
+    .product-table td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+    .product-table tr:last-child td { border-bottom: none; }
+    .product-table tr:hover td { background: var(--surface); }
+    .product-emoji-cell { font-size: 28px; width: 56px; text-align: center; }
+    .product-name-cell { font-weight: 500; }
+    .product-desc-cell { color: var(--muted); font-size: 12px; max-width: 220px; line-height: 1.4; }
+    .product-price-cell {
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px;
+      color: var(--accent); white-space: nowrap;
+    }
+    .product-status-cell { white-space: nowrap; }
+    .status-pill {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-family: 'Syne', sans-serif; letter-spacing: 0.5px;
+    }
+    .status-active { background: rgba(74,222,128,0.12); color: var(--success); border: 1px solid rgba(74,222,128,0.2); }
+    .status-hidden { background: rgba(136,136,136,0.12); color: var(--muted); border: 1px solid var(--border); }
+    .action-btns { display: flex; gap: 8px; }
+    .edit-btn {
+      background: transparent; border: 1px solid var(--border); color: var(--text);
+      padding: 6px 14px; font-size: 12px; cursor: pointer; border-radius: 3px;
+      font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+    }
+    .edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .delete-btn {
+      background: transparent; border: 1px solid transparent; color: var(--muted);
+      padding: 6px 10px; font-size: 14px; cursor: pointer; border-radius: 3px;
+      transition: all 0.2s;
+    }
+    .delete-btn:hover { color: var(--danger); border-color: var(--danger); background: rgba(255,85,85,0.08); }
+    .empty-state {
+      text-align: center; padding: 64px 24px; color: var(--muted);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state p { font-size: 14px; }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex; gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 4px; margin-bottom: 24px; overflow: hidden;
+    }
+    .stat-item {
+      flex: 1; background: var(--surface); padding: 16px 20px;
+    }
+    .stat-label { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+    .stat-value { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; }
+    .stat-value.accent { color: var(--accent); }
+
+    /* ── RIGHT: FORM PANEL ── */
+    .form-side { padding: 40px 32px; background: var(--surface); }
+    .form-title {
+      font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700;
+      margin-bottom: 6px; letter-spacing: -0.5px;
+    }
+    .form-subtitle { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block; font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px; font-family: 'Syne', sans-serif;
+    }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      color: var(--text); padding: 12px 14px; font-family: 'DM Sans', sans-serif;
+      font-size: 14px; border-radius: 4px; outline: none; transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      border-color: var(--accent);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+    .form-group select option { background: var(--surface); }
+    .emoji-grid {
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px;
+    }
+    .emoji-option {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+      padding: 8px; font-size: 20px; cursor: pointer; text-align: center;
+      transition: all 0.15s;
+    }
+    .emoji-option:hover { border-color: var(--accent); background: rgba(232,255,71,0.08); }
+    .emoji-option.selected { border-color: var(--accent); background: rgba(232,255,71,0.15); }
+    .price-input-wrap { position: relative; }
+    .price-input-wrap input { padding-right: 48px; }
+    .price-currency {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      color: var(--muted); font-size: 13px; font-family: 'Syne', sans-serif;
+      pointer-events: none;
+    }
+    .form-actions { display: flex; gap: 10px; margin-top: 28px; }
+    .save-btn {
+      flex: 1; background: var(--accent); color: #000; border: none;
+      padding: 14px; font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 14px; cursor: pointer; border-radius: 4px; transition: opacity 0.2s;
+    }
+    .save-btn:hover { opacity: 0.85; }
+    .cancel-btn {
+      background: transparent; color: var(--muted); border: 1px solid var(--border);
+      padding: 14px 20px; font-family: 'DM Sans', sans-serif; font-size: 14px;
+      cursor: pointer; border-radius: 4px; transition: all 0.2s;
+    }
+    .cancel-btn:hover { color: var(--text); border-color: var(--text); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 32px; right: 32px; background: var(--surface);
+      border: 1px solid var(--border); border-left: 3px solid var(--accent);
+      padding: 14px 20px; border-radius: 4px; font-size: 13px;
+      transform: translateY(80px); opacity: 0; transition: all 0.3s;
+      z-index: 999; pointer-events: none;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.error { border-left-color: var(--danger); }
+
+    /* Delete confirm modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+      padding: 32px; max-width: 380px; width: 90%; text-align: center;
+    }
+    .modal h3 { font-family: 'Syne', sans-serif; font-size: 20px; margin-bottom: 8px; }
+    .modal p { color: var(--muted); font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+    .modal-btns { display: flex; gap: 10px; }
+    .modal-delete { flex: 1; background: var(--danger); color: #fff; border: none; padding: 12px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; border-radius: 4px; }
+    .modal-cancel { flex: 1; background: transparent; color: var(--text); border: 1px solid var(--border); padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; border-radius: 4px; }
+
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+      .table-side, .form-side { padding: 24px; }
+      header { padding: 16px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Mock<span>Store</span></div>
+  <div class="header-right">
+    <span class="admin-badge">ADMIN</span>
+    <a href="index.html" class="nav-link">← View Store</a>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- LEFT: Product Table -->
+  <div class="table-side">
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-label">Total Products</div>
+        <div class="stat-value accent" id="statTotal">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Active</div>
+        <div class="stat-value" id="statActive">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Avg Price</div>
+        <div class="stat-value" id="statAvg">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Hidden</div>
+        <div class="stat-value" id="statHidden">0</div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div>
+        <h2>Catalogue</h2>
+        <p>Manage products visible in the store</p>
+      </div>
+      <button class="add-new-btn" onclick="openAddForm()">+ Add Product</button>
+    </div>
+
+    <table class="product-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Product</th>
+          <th>Description</th>
+          <th>Price</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="productTableBody"></tbody>
+    </table>
+
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="icon">📦</div>
+      <p>No products yet. Add your first product →</p>
+    </div>
+  </div>
+
+  <!-- RIGHT: Form Panel -->
+  <div class="form-side">
+    <div class="form-title" id="formTitle">Add Product</div>
+    <div class="form-subtitle" id="formSubtitle">New products appear in the store immediately.</div>
+
+    <div class="form-group">
+      <label>Product Name</label>
+      <input type="text" id="fieldName" placeholder="e.g. Wireless Headphones" maxlength="60"/>
+    </div>
+
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="fieldDesc" placeholder="Short description shown on the product card..." maxlength="120"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Price (SAR)</label>
+      <div class="price-input-wrap">
+        <input type="number" id="fieldPrice" placeholder="0.00" min="0" step="0.01"/>
+        <span class="price-currency">SAR</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Icon / Emoji</label>
+      <div class="emoji-grid" id="emojiGrid"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Status</label>
+      <select id="fieldStatus">
+        <option value="active">Active — visible in store</option>
+        <option value="hidden">Hidden — not shown in store</option>
+      </select>
+    </div>
+
+    <div class="form-actions">
+      <button class="save-btn" onclick="saveProduct()">Save Product</button>
+      <button class="cancel-btn" onclick="resetForm()">Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3>Delete Product?</h3>
+    <p id="deleteModalText">This will remove the product from the store. This cannot be undone.</p>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+      <button class="modal-delete" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ─── CONSTANTS ───────────────────────────────────────────────
+  const STORAGE_KEY = 'mockstore_catalogue';
+
+  const EMOJI_OPTIONS = [
+    '🎧','⌨️','💡','📱','🖥️','🎮','📷','⌚',
+    '🎒','👟','👗','💍','🛋️','🪴','☕','🍕',
+    '📚','🎵','✈️','🚗','💊','🧴','🏋️','🎁'
+  ];
+
+  const DEFAULT_PRODUCTS = [
+    { id: 'prod_001', name: 'Wireless Headphones', desc: 'Premium noise-cancelling over-ear headphones with 40hr battery life.', price: 299.00, emoji: '🎧', status: 'active' },
+    { id: 'prod_002', name: 'Mechanical Keyboard',  desc: 'TKL layout, tactile switches, aluminum body. Built to last.',           price: 449.00, emoji: '⌨️', status: 'active' },
+    { id: 'prod_003', name: 'Desk Lamp Pro',         desc: 'LED, adjustable color temperature, USB-C charging port built in.',     price: 189.00, emoji: '💡', status: 'active' },
+  ];
+
+  // ─── STATE ───────────────────────────────────────────────────
+  let products = [];
+  let editingId = null;
+  let deleteTargetId = null;
+  let selectedEmoji = '🎧';
+
+  // ─── STORAGE ─────────────────────────────────────────────────
+  function loadProducts() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      products = JSON.parse(stored);
+    } else {
+      products = DEFAULT_PRODUCTS.map(p => ({ ...p }));
+      saveToStorage();
+    }
+  }
+
+  function saveToStorage() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+  }
+
+  // ─── RENDER TABLE ────────────────────────────────────────────
+  function renderTable() {
+    const tbody = document.getElementById('productTableBody');
+    const empty = document.getElementById('emptyState');
+    const active = products.filter(p => p.status === 'active');
+    const hidden = products.filter(p => p.status === 'hidden');
+    const avg = products.length ? (products.reduce((s,p) => s + p.price, 0) / products.length) : 0;
+
+    document.getElementById('statTotal').textContent  = products.length;
+    document.getElementById('statActive').textContent = active.length;
+    document.getElementById('statHidden').textContent = hidden.length;
+    document.getElementById('statAvg').textContent    = avg.toFixed(0);
+
+    if (products.length === 0) {
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    tbody.innerHTML = products.map(p => `
+      <tr>
+        <td class="product-emoji-cell">${p.emoji}</td>
+        <td class="product-name-cell">${escHtml(p.name)}</td>
+        <td class="product-desc-cell">${escHtml(p.desc)}</td>
+        <td class="product-price-cell">${p.price.toFixed(2)}<span style="font-size:11px;color:var(--muted);font-family:'DM Sans';font-weight:300;"> SAR</span></td>
+        <td class="product-status-cell">
+          <span class="status-pill ${p.status === 'active' ? 'status-active' : 'status-hidden'}">
+            ${p.status === 'active' ? '● Active' : '○ Hidden'}
+          </span>
+        </td>
+        <td>
+          <div class="action-btns">
+            <button class="edit-btn" onclick="openEditForm('${p.id}')">Edit</button>
+            <button class="delete-btn" onclick="openDeleteModal('${p.id}')" title="Delete">×</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ─── EMOJI GRID ──────────────────────────────────────────────
+  function renderEmojiGrid(selected) {
+    const grid = document.getElementById('emojiGrid');
+    grid.innerHTML = EMOJI_OPTIONS.map(e => `
+      <div class="emoji-option ${e === selected ? 'selected' : ''}"
+           onclick="selectEmoji('${e}')">${e}</div>
+    `).join('');
+  }
+
+  function selectEmoji(emoji) {
+    selectedEmoji = emoji;
+    renderEmojiGrid(emoji);
+  }
+
+  // ─── FORM LOGIC ──────────────────────────────────────────────
+  function openAddForm() {
+    editingId = null;
+    selectedEmoji = '🎧';
+    document.getElementById('formTitle').textContent    = 'Add Product';
+    document.getElementById('formSubtitle').textContent = 'New products appear in the store immediately.';
+    document.getElementById('fieldName').value   = '';
+    document.getElementById('fieldDesc').value   = '';
+    document.getElementById('fieldPrice').value  = '';
+    document.getElementById('fieldStatus').value = 'active';
+    renderEmojiGrid(selectedEmoji);
+    document.getElementById('fieldName').focus();
+  }
+
+  function openEditForm(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    editingId    = id;
+    selectedEmoji = p.emoji;
+    document.getElementById('formTitle').textContent    = 'Edit Product';
+    document.getElementById('formSubtitle').textContent = `Editing: ${p.name}`;
+    document.getElementById('fieldName').value   = p.name;
+    document.getElementById('fieldDesc').value   = p.desc;
+    document.getElementById('fieldPrice').value  = p.price;
+    document.getElementById('fieldStatus').value = p.status || 'active';
+    renderEmojiGrid(selectedEmoji);
+    document.getElementById('fieldName').focus();
+  }
+
+  function resetForm() {
+    openAddForm();
+  }
+
+  function saveProduct() {
+    const name  = document.getElementById('fieldName').value.trim();
+    const desc  = document.getElementById('fieldDesc').value.trim();
+    const price = parseFloat(document.getElementById('fieldPrice').value);
+    const status = document.getElementById('fieldStatus').value;
+
+    if (!name)          { showToast('Product name is required.', true); return; }
+    if (!desc)          { showToast('Description is required.', true); return; }
+    if (isNaN(price) || price < 0) { showToast('Enter a valid price.', true); return; }
+
+    if (editingId) {
+      // Update existing
+      const idx = products.findIndex(p => p.id === editingId);
+      if (idx > -1) {
+        products[idx] = { ...products[idx], name, desc, price, emoji: selectedEmoji, status };
+        showToast(`"${name}" updated successfully.`);
+      }
+    } else {
+      // Add new
+      const newProduct = {
+        id:     'prod_' + Date.now(),
+        name, desc, price,
+        emoji:  selectedEmoji,
+        status
+      };
+      products.push(newProduct);
+      showToast(`"${name}" added to catalogue.`);
+    }
+
+    saveToStorage();
+    renderTable();
+    openAddForm(); // reset form after save
+  }
+
+  // ─── DELETE ──────────────────────────────────────────────────
+  function openDeleteModal(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    deleteTargetId = id;
+    document.getElementById('deleteModalText').textContent =
+      `This will permanently remove "${p.name}" from the catalogue.`;
+    document.getElementById('deleteModal').classList.add('show');
+  }
+
+  function closeDeleteModal() {
+    deleteTargetId = null;
+    document.getElementById('deleteModal').classList.remove('show');
+  }
+
+  function confirmDelete() {
+    if (!deleteTargetId) return;
+    const p = products.find(x => x.id === deleteTargetId);
+    products = products.filter(x => x.id !== deleteTargetId);
+    saveToStorage();
+    renderTable();
+    closeDeleteModal();
+    showToast(`"${p?.name}" deleted.`);
+    if (editingId === deleteTargetId) openAddForm();
+  }
+
+  // ─── TOAST ───────────────────────────────────────────────────
+  let toastTimer;
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = 'toast'; }, 3000);
+  }
+
+  // ─── UTILS ───────────────────────────────────────────────────
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ─── INIT ────────────────────────────────────────────────────
+  loadProducts();
+  renderTable();
+  renderEmojiGrid(selectedEmoji);
+</script>
+</body>
+</html>
