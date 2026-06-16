@@ -35,7 +35,7 @@ app.post('/api/create-checkout', async (req, res) => {
     entityId:              ENTITY_ID,
     amount:                parseFloat(amount).toFixed(2),
     currency:              currency || 'SAR',
-    paymentType:           'DB',
+    paymentType:           'PA',
     merchantTransactionId: merchantTransactionId,
   });
 
