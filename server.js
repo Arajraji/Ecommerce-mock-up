@@ -1,40 +1,49 @@
 const express = require('express');
-const path = require('path');
+const path    = require('path');
 
-const app = express();
+const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// Parse JSON request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve all HTML/CSS/JS files from the current directory
 app.use(express.static(path.join(__dirname)));
 
-// ─── HYPERPAY CHECKOUT ENDPOINT ─────────────────────────────────
-// This is where your frontend calls to get a checkoutId from HyperPay
-// Fill in your real credentials when ready
-app.post('/api/create-checkout', async (req, res) => {
-  const { amount, currency, merchantTransactionId } = req.body;
+// ─── CREDENTIALS (set as env vars in Railway) ────────────────────
+const ENTITY_ID    = process.env.HYPERPAY_ENTITY_ID    || '8ac9a4c99bbbfffe019bd694292114e2';
+const ACCESS_TOKEN = process.env.HYPERPAY_ACCESS_TOKEN || 'OGFjZGE0Y2M4YjY2NzQwYjAxOGI4YmEzNjhmOTM3M2R8ek1zSkY0RkRERFRucnFjeA==';
+const HYPERPAY_BASE = 'https://eu-test.oppwa.com';
 
-  // ── CONFIG ── Replace these with your HyperPay test credentials
-  const ENTITY_ID    = process.env.HYPERPAY_ENTITY_ID    || 'YOUR_ENTITY_ID';
-  const ACCESS_TOKEN = process.env.HYPERPAY_ACCESS_TOKEN || 'YOUR_ACCESS_TOKEN';
-  const HYPERPAY_URL = 'https://eu-test.oppwa.com/v1/checkouts';
-  // For production: https://oppwa.com/v1/checkouts
+// ─── HELPER: unique merchantTransactionId ────────────────────────
+function generateMerchantTransactionId() {
+  const ts     = Date.now();
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  return `MOCK-${ts}-${random}`;
+}
+
+// ─── 1. PREPARE CHECKOUT ─────────────────────────────────────────
+// Frontend POSTs cart total here → we call HyperPay → return checkoutId
+app.post('/api/create-checkout', async (req, res) => {
+  const { amount, currency } = req.body;
+
+  if (!amount || isNaN(parseFloat(amount))) {
+    return res.status(400).json({ error: 'Invalid amount' });
+  }
+
+  const merchantTransactionId = generateMerchantTransactionId();
+
+  const params = new URLSearchParams({
+    entityId:              ENTITY_ID,
+    amount:                parseFloat(amount).toFixed(2),
+    currency:              currency || 'SAR',
+    paymentType:           'DB',
+    merchantTransactionId: merchantTransactionId,
+  });
 
   try {
-    const params = new URLSearchParams({
-      entityId:              ENTITY_ID,
-      amount:                amount,
-      currency:              currency || 'SAR',
-      paymentType:           'DB',
-      merchantTransactionId: merchantTransactionId,
-      'customer.email':      req.body.email || 'test@mockstore.com',
-    });
+    console.log(`→ Creating checkout | ${params.get('amount')} ${params.get('currency')} | ref: ${merchantTransactionId}`);
 
-    const response = await fetch(HYPERPAY_URL, {
-      method: 'POST',
+    const response = await fetch(`${HYPERPAY_BASE}/v1/checkouts`, {
+      method:  'POST',
       headers: {
         'Authorization': `Bearer ${ACCESS_TOKEN}`,
         'Content-Type':  'application/x-www-form-urlencoded',
@@ -44,17 +53,48 @@ app.post('/api/create-checkout', async (req, res) => {
 
     const data = await response.json();
 
-    if (!response.ok || !data.id) {
-      console.error('HyperPay error:', data);
-      return res.status(400).json({ error: 'Failed to create checkout', details: data });
+    if (!data.id) {
+      console.error('HyperPay rejected checkout:', JSON.stringify(data));
+      return res.status(400).json({ error: 'HyperPay rejected the request', details: data });
     }
 
-    console.log(`✅ Checkout created: ${data.id} | Amount: ${amount} ${currency}`);
-    res.json({ checkoutId: data.id });
+    console.log(`✅ checkoutId: ${data.id}`);
+    res.json({
+      checkoutId:            data.id,
+      merchantTransactionId: merchantTransactionId,
+    });
 
   } catch (err) {
-    console.error('Server error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Network error calling HyperPay:', err.message);
+    res.status(500).json({ error: 'Failed to reach HyperPay', message: err.message });
+  }
+});
+
+// ─── 2. GET PAYMENT STATUS ───────────────────────────────────────
+// Called from success.html with the resourcePath HyperPay appends to the redirect URL
+app.get('/api/payment-status', async (req, res) => {
+  const { resourcePath } = req.query;
+
+  if (!resourcePath) {
+    return res.status(400).json({ error: 'resourcePath is required' });
+  }
+
+  const url = `${HYPERPAY_BASE}${resourcePath}?entityId=${ENTITY_ID}`;
+
+  try {
+    console.log(`→ Fetching payment status: ${url}`);
+
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` },
+    });
+
+    const data = await response.json();
+    console.log(`✅ Payment status: ${data.result?.code} — ${data.result?.description}`);
+    res.json(data);
+
+  } catch (err) {
+    console.error('Error fetching payment status:', err.message);
+    res.status(500).json({ error: 'Failed to fetch payment status', message: err.message });
   }
 });
 
@@ -63,7 +103,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// ─── FALLBACK ────────────────────────────────────────────────────
+// ─── STATIC FALLBACK ─────────────────────────────────────────────
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });

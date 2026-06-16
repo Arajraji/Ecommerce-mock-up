@@ -6,205 +6,56 @@
   <title>Checkout — MockStore</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
-    :root {
-      --bg: #0f0f0f;
-      --surface: #1a1a1a;
-      --border: #2a2a2a;
-      --accent: #e8ff47;
-      --text: #f0f0f0;
-      --muted: #888;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 24px 48px;
-      border-bottom: 1px solid var(--border);
-    }
-    .logo {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 20px;
-    }
-    .logo span { color: var(--accent); }
-    .back-link {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: color 0.2s;
-    }
-    .back-link:hover { color: var(--text); }
-    .main {
-      display: grid;
-      grid-template-columns: 1fr 420px;
-      gap: 0;
-      flex: 1;
-    }
-    .checkout-side {
-      padding: 48px;
-      border-right: 1px solid var(--border);
-    }
-    .checkout-side h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: 28px;
-      font-weight: 800;
-      letter-spacing: -1px;
-      margin-bottom: 8px;
-    }
-    .checkout-side p {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 32px;
-    }
-    .step-label {
-      font-family: 'Syne', sans-serif;
-      font-size: 11px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 20px;
-    }
-    /* HyperPay widget container */
-    #hyperpay-widget {
-      min-height: 300px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .widget-placeholder {
-      text-align: center;
-      color: var(--muted);
-    }
-    .widget-placeholder .icon { font-size: 48px; margin-bottom: 16px; }
-    .widget-placeholder h3 {
-      font-family: 'Syne', sans-serif;
-      font-size: 16px;
-      color: var(--text);
-      margin-bottom: 8px;
-    }
-    .widget-placeholder p { font-size: 13px; line-height: 1.5; }
-    .config-steps {
-      margin-top: 24px;
-      background: #0a1a0a;
-      border: 1px solid #1a3a1a;
-      border-radius: 4px;
-      padding: 20px;
-    }
-    .config-steps h4 {
-      font-family: 'Syne', sans-serif;
-      font-size: 11px;
-      letter-spacing: 1px;
-      color: #4ade80;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-    }
-    .config-steps ol {
-      padding-left: 18px;
-      font-size: 13px;
-      color: #86efac;
-      line-height: 2;
-    }
-    .config-steps code {
-      background: rgba(74,222,128,0.1);
-      padding: 1px 6px;
-      border-radius: 3px;
-      font-family: monospace;
-      font-size: 12px;
-    }
-    /* Order summary side */
-    .summary-side {
-      padding: 48px 36px;
-      background: var(--surface);
-    }
-    .summary-side h3 {
-      font-family: 'Syne', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 24px;
-      letter-spacing: 0.5px;
-    }
-    .summary-items { margin-bottom: 24px; }
-    .summary-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 14px;
-    }
-    .summary-item:last-child { border-bottom: none; }
-    .summary-item-name { color: var(--text); }
-    .summary-item-qty { color: var(--muted); font-size: 12px; margin-top: 2px; }
-    .summary-item-price { font-family: 'Syne', sans-serif; font-weight: 700; }
-    .summary-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
-    .summary-total {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .summary-total-label { color: var(--muted); font-size: 13px; }
-    .summary-total-amount {
-      font-family: 'Syne', sans-serif;
-      font-size: 32px;
-      font-weight: 800;
-      color: var(--accent);
-    }
-    .summary-total-currency { font-size: 14px; color: var(--muted); }
-    .security-note {
-      margin-top: 32px;
-      padding: 16px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-    .security-note strong { color: var(--text); }
-    .payload-debug {
-      margin-top: 24px;
-      background: #0a0a1a;
-      border: 1px solid #1a1a3a;
-      border-radius: 4px;
-      padding: 16px;
-    }
-    .payload-debug h4 {
-      font-family: 'Syne', sans-serif;
-      font-size: 10px;
-      letter-spacing: 1px;
-      color: #818cf8;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-    }
-    .payload-debug pre {
-      font-family: monospace;
-      font-size: 11px;
-      color: #a5b4fc;
-      white-space: pre-wrap;
-      line-height: 1.5;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    @media (max-width: 768px) {
-      .main { grid-template-columns: 1fr; }
-      .checkout-side, .summary-side { padding: 24px; }
-      header { padding: 16px 24px; }
-    }
+    :root { --bg:#0f0f0f; --surface:#1a1a1a; --border:#2a2a2a; --accent:#e8ff47; --text:#f0f0f0; --muted:#888; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; flex-direction:column; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:24px 48px; border-bottom:1px solid var(--border); }
+    .logo { font-family:'Syne',sans-serif; font-weight:800; font-size:20px; }
+    .logo span { color:var(--accent); }
+    .back-link { color:var(--muted); text-decoration:none; font-size:13px; display:flex; align-items:center; gap:6px; transition:color 0.2s; }
+    .back-link:hover { color:var(--text); }
+    .main { display:grid; grid-template-columns:1fr 400px; gap:0; flex:1; }
+
+    /* LEFT */
+    .checkout-side { padding:48px; border-right:1px solid var(--border); }
+    .step-label { font-family:'Syne',sans-serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent); margin-bottom:12px; }
+    .checkout-side h2 { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; letter-spacing:-1px; margin-bottom:6px; }
+    .checkout-side > p { color:var(--muted); font-size:13px; margin-bottom:32px; }
+
+    /* Loading state */
+    #widgetLoader { text-align:center; padding:48px 24px; }
+    .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 16px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    #loaderText { color:var(--muted); font-size:13px; margin-top:8px; }
+
+    /* Error state */
+    #widgetError { display:none; background:#1a0a0a; border:1px solid #3a1a1a; border-radius:6px; padding:24px; }
+    #widgetError h4 { font-family:'Syne',sans-serif; color:#ff5555; margin-bottom:8px; }
+    #widgetError p { color:#fca5a5; font-size:13px; line-height:1.6; }
+    #widgetError pre { font-family:monospace; font-size:11px; color:#fca5a5; margin-top:12px; white-space:pre-wrap; }
+    .retry-btn { display:inline-block; margin-top:16px; background:#ff5555; color:#fff; border:none; padding:10px 20px; font-family:'Syne',sans-serif; font-weight:700; font-size:13px; cursor:pointer; border-radius:4px; }
+
+    /* HyperPay widget overrides — light theme inside dark page */
+    #widget-container { background:#fff; border-radius:8px; padding:24px; }
+
+    /* RIGHT: Summary */
+    .summary-side { padding:48px 36px; background:var(--surface); }
+    .summary-side h3 { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; margin-bottom:24px; }
+    .summary-item { display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); font-size:14px; }
+    .summary-item:last-child { border-bottom:none; }
+    .summary-item-name { color:var(--text); }
+    .summary-item-qty { color:var(--muted); font-size:12px; margin-top:2px; }
+    .summary-item-price { font-family:'Syne',sans-serif; font-weight:700; }
+    .summary-total { display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:16px; border-top:1px solid var(--border); }
+    .summary-total-label { color:var(--muted); font-size:13px; }
+    .summary-total-amount { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; color:var(--accent); }
+    .ref-box { margin-top:24px; background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:14px 16px; }
+    .ref-label { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; font-family:'Syne',sans-serif; }
+    .ref-value { font-family:monospace; font-size:12px; color:var(--accent); word-break:break-all; }
+    .test-note { margin-top:20px; background:#0a1a0a; border:1px solid #1a3a1a; border-radius:4px; padding:14px 16px; font-size:12px; color:#86efac; line-height:1.7; }
+    .test-note strong { color:#4ade80; }
+
+    @media(max-width:768px) { .main{grid-template-columns:1fr;} .checkout-side,.summary-side{padding:24px;} header{padding:16px 24px;} }
   </style>
 </head>
 <body>
@@ -222,87 +73,59 @@
     <h2>Payment</h2>
     <p>Complete your purchase securely via HyperPay.</p>
 
-    <!--
-      ═══════════════════════════════════════════════════
-      HYPERPAY WIDGET LOADS HERE
-      ═══════════════════════════════════════════════════
-      HOW IT WORKS:
-      1. Your backend receives the cart total
-      2. Backend calls HyperPay API to create a "checkout"
-      3. HyperPay returns a checkoutId
-      4. You load their JS SDK with that checkoutId
-      5. The form below auto-renders with card fields
-      ═══════════════════════════════════════════════════
-    -->
-    <div id="hyperpay-widget">
-      <div class="widget-placeholder">
-        <div class="icon">💳</div>
-        <h3>HyperPay Widget Renders Here</h3>
-        <p>After you connect your backend and obtain a<br>
-        <strong style="color:var(--accent)">checkoutId</strong> from HyperPay,<br>
-        the payment form auto-renders in this space.</p>
-      </div>
+    <!-- Loading -->
+    <div id="widgetLoader">
+      <div class="spinner"></div>
+      <div id="loaderText">Preparing your checkout...</div>
     </div>
 
-    <!--
-      WHEN YOU HAVE A REAL checkoutId, replace the widget div above with:
-
-      <form action="/success.html" class="paymentWidgets"
-            data-brands="VISA MASTER MADA AMEX"></form>
-
-      And load HyperPay's script dynamically like this:
-    -->
-
-    <div class="config-steps">
-      <h4>🔧 To Activate — 3 Steps</h4>
-      <ol>
-        <li>Get a test account at <code>hyperpay.com</code></li>
-        <li>From your backend, POST to HyperPay to get a <code>checkoutId</code></li>
-        <li>Replace the placeholder above with the widget form + script tag</li>
-      </ol>
+    <!-- Error -->
+    <div id="widgetError">
+      <h4>Checkout Failed</h4>
+      <p id="errorMsg">Unable to initialise payment.</p>
+      <pre id="errorDetail"></pre>
+      <button class="retry-btn" onclick="window.location.reload()">Try Again</button>
     </div>
+
+    <!-- HyperPay COPYandPAY widget renders here -->
+    <div id="widget-container" style="display:none;"></div>
   </div>
 
   <!-- RIGHT: Order Summary -->
   <div class="summary-side">
     <h3>Order Summary</h3>
-    <div class="summary-items" id="summaryItems">
-      <div style="color:var(--muted);font-size:13px;">Loading cart...</div>
-    </div>
-
-    <hr class="summary-divider"/>
-
+    <div id="summaryItems"><div style="color:var(--muted);font-size:13px;">Loading...</div></div>
     <div class="summary-total">
       <div>
         <div class="summary-total-label">Total</div>
-        <div class="summary-total-currency">Saudi Riyal</div>
+        <div style="color:var(--muted);font-size:11px;">Saudi Riyal</div>
       </div>
       <div class="summary-total-amount" id="summaryTotal">0.00 <span style="font-size:16px">SAR</span></div>
     </div>
-
-    <div class="security-note">
-      🔒 <strong>Test Mode Active</strong><br>
-      Use HyperPay test card: <code>4111 1111 1111 1111</code> · Exp: any future date · CVV: any 3 digits.<br>
-      No real charges will be made.
+    <div class="ref-box">
+      <div class="ref-label">Order Reference</div>
+      <div class="ref-value" id="orderRef">Generating...</div>
     </div>
-
-    <div class="payload-debug">
-      <h4>📡 Payload Sent to HyperPay Backend</h4>
-      <pre id="payloadDebug">Loading...</pre>
+    <div class="test-note">
+      <strong>Test Cards</strong><br>
+      ✅ Visa success: <code>4111 1111 1111 1111</code><br>
+      ✅ Master success: <code>5105 1051 0510 5100</code><br>
+      ❌ Decline: <code>4000 0000 0000 0002</code><br>
+      Expiry: any future date · CVV: any 3 digits
     </div>
   </div>
 
 </div>
 
 <script>
-  // ─── LOAD CART FROM SESSION ──────────────────────────────────
+  // ── Load cart from session ──────────────────────────────────────
   const payload = JSON.parse(sessionStorage.getItem('checkoutPayload') || '{}');
-  const cart    = JSON.parse(sessionStorage.getItem('cartSummary') || '[]');
+  const cart    = JSON.parse(sessionStorage.getItem('cartSummary')    || '[]');
 
-  // Render order summary
+  // Render summary
   const summaryItems = document.getElementById('summaryItems');
   if (cart.length === 0) {
-    summaryItems.innerHTML = '<div style="color:var(--muted);font-size:13px;">No items found. <a href="index.html" style="color:var(--accent)">Return to store</a></div>';
+    summaryItems.innerHTML = '<div style="color:var(--muted);font-size:13px;">No items. <a href="index.html" style="color:var(--accent)">Return to store</a></div>';
   } else {
     summaryItems.innerHTML = cart.map(item => `
       <div class="summary-item">
@@ -310,57 +133,92 @@
           <div class="summary-item-name">${item.emoji} ${item.name}</div>
           <div class="summary-item-qty">Qty: ${item.qty}</div>
         </div>
-        <div class="summary-item-price">${(item.price * item.qty).toFixed(2)}</div>
+        <div class="summary-item-price">${(item.price * item.qty).toFixed(2)} SAR</div>
       </div>
     `).join('');
   }
 
-  const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-  document.getElementById('summaryTotal').innerHTML = `${total.toFixed(2)} <span style="font-size:16px">SAR</span>`;
-  document.getElementById('payloadDebug').textContent = JSON.stringify(payload, null, 2);
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  document.getElementById('summaryTotal').innerHTML =
+    `${total.toFixed(2)} <span style="font-size:16px">SAR</span>`;
 
-  // ─── HYPERPAY WIDGET LOADER ──────────────────────────────────
-  // When you have a real checkoutId from your backend, use this function:
-  function loadHyperPayWidget(checkoutId) {
-    // 1. Replace placeholder with the payment form
-    const widget = document.getElementById('hyperpay-widget');
-    widget.innerHTML = `
+  // ── Call our backend to prepare checkout ───────────────────────
+  async function initCheckout() {
+    try {
+      document.getElementById('loaderText').textContent = 'Connecting to HyperPay...';
+
+      const res = await fetch('/api/create-checkout', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: total.toFixed(2), currency: 'SAR' }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.checkoutId) {
+        showError(
+          data.error || 'Could not create checkout session.',
+          JSON.stringify(data.details || data, null, 2)
+        );
+        return;
+      }
+
+      // Show order reference
+      document.getElementById('orderRef').textContent = data.merchantTransactionId;
+
+      // Store for success page
+      sessionStorage.setItem('merchantTransactionId', data.merchantTransactionId);
+      sessionStorage.setItem('checkoutAmount', total.toFixed(2));
+
+      // Load HyperPay COPYandPAY widget
+      loadWidget(data.checkoutId);
+
+    } catch (err) {
+      showError('Network error — is the server running?', err.message);
+    }
+  }
+
+  function loadWidget(checkoutId) {
+    document.getElementById('loaderText').textContent = 'Loading payment form...';
+
+    const container = document.getElementById('widget-container');
+
+    // Add the payment form
+    container.innerHTML = `
       <form action="${window.location.origin}/success.html"
             class="paymentWidgets"
-            data-brands="VISA MASTER MADA AMEX">
+            data-brands="VISA MASTER AMEX MADA">
       </form>
     `;
 
-    // 2. Load HyperPay's JS SDK (TEST endpoint)
-    const script = document.createElement('script');
-    script.src = `https://eu-test.oppwa.com/v1/paymentWidgets.js?checkoutId=${checkoutId}`;
-    // For PRODUCTION use: https://oppwa.com/v1/paymentWidgets.js
+    // Inject HyperPay script
+    const script   = document.createElement('script');
+    script.src     = `https://eu-test.oppwa.com/v1/paymentWidgets.js?checkoutId=${checkoutId}`;
+    script.async   = true;
+    script.onload  = () => {
+      document.getElementById('widgetLoader').style.display  = 'none';
+      container.style.display = 'block';
+      console.log('✅ HyperPay widget loaded | checkoutId:', checkoutId);
+    };
+    script.onerror = () => {
+      showError('Failed to load HyperPay payment form.', 'Script load error from eu-test.oppwa.com');
+    };
     document.body.appendChild(script);
-
-    console.log('HyperPay widget loaded with checkoutId:', checkoutId);
   }
 
-  // ─── EXAMPLE: Fetch checkoutId from your backend ─────────────
-  // Uncomment this when your backend is ready:
-  /*
-  async function initCheckout() {
-    const res = await fetch('/api/create-checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        amount: payload.amount,
-        currency: payload.currency,
-        merchantTransactionId: payload.merchantTransactionId
-      })
-    });
-    const { checkoutId } = await res.json();
-    loadHyperPayWidget(checkoutId);
+  function showError(msg, detail) {
+    document.getElementById('widgetLoader').style.display = 'none';
+    document.getElementById('widgetError').style.display  = 'block';
+    document.getElementById('errorMsg').textContent        = msg;
+    document.getElementById('errorDetail').textContent     = detail || '';
   }
-  initCheckout();
-  */
 
-  // For immediate testing with a hardcoded test checkoutId:
-  // loadHyperPayWidget('YOUR_TEST_CHECKOUT_ID_HERE');
+  // ── Start ──────────────────────────────────────────────────────
+  if (cart.length === 0) {
+    showError('Your cart is empty.', 'Please add products before checking out.');
+  } else {
+    initCheckout();
+  }
 </script>
 </body>
 </html>
