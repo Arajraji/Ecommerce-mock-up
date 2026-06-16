@@ -193,7 +193,7 @@
 
     // Inject HyperPay script
     const script   = document.createElement('script');
-    script.src     = `https://eu-test.oppwa.com/v1/paymentWidgets.js?checkoutId=${checkoutId}`;
+    script.src     = `https://oppwa.com/v1/paymentWidgets.js?checkoutId=${checkoutId}`;
     script.async   = true;
     script.onload  = () => {
       document.getElementById('widgetLoader').style.display  = 'none';
@@ -201,7 +201,7 @@
       console.log('✅ HyperPay widget loaded | checkoutId:', checkoutId);
     };
     script.onerror = () => {
-      showError('Failed to load HyperPay payment form.', 'Script load error from eu-test.oppwa.com');
+      showError('Failed to load HyperPay payment form.', 'Script load error from oppwa.com');
     };
     document.body.appendChild(script);
   }
