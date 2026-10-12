@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Pay Bill — Hala Kitchen</title>
+  <link rel="stylesheet" href="/apple-design.css"/>
+  <style>
+    body { padding-bottom:env(safe-area-inset-bottom,0px); }
+    .layout { display:grid; grid-template-columns:1fr 340px; min-height:calc(100vh - 52px); }
+    @media(max-width:700px){ .layout{grid-template-columns:1fr;} .summary-side{order:-1;border-right:none;border-bottom:0.5px solid var(--separator);} }
+    .widget-side { padding:28px 32px; border-right:0.5px solid var(--separator); }
+    .summary-side { padding:28px 24px; background:var(--bg-secondary); }
+    #widget-container { background:var(--bg-secondary); border-radius:var(--radius-lg); padding:20px; box-shadow:var(--shadow-sm); }
+    .inv-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:0.5px solid var(--separator); font-size:15px; }
+    .inv-row:last-child { border-bottom:none; }
+    .test-note { margin-top:20px; background:rgba(52,199,89,0.08); border:1px solid rgba(52,199,89,0.2); border-radius:var(--radius-md); padding:14px 16px; }
+    .loader-center { text-align:center; padding:48px 0; }
+    .error-box { background:rgba(255,59,48,0.08); border:1px solid rgba(255,59,48,0.2); border-radius:var(--radius-md); padding:20px; }
+  </style>
+</head>
+<body>
+<nav class="ios-navbar">
+  <a class="ios-navbar-action" id="backLink" href="/" style="text-decoration:none;">← Back</a>
+  <span class="ios-navbar-title">Pay Bill</span>
+  <span></span>
+</nav>
+
+<div class="layout">
+  <div class="widget-side">
+    <div class="text-title-3" style="margin-bottom:4px;">Secure Payment</div>
+    <div class="text-subhead" style="color:var(--label-2);margin-bottom:24px;">Processed by HyperPay</div>
+
+    <div id="widgetLoader" class="loader-center">
+      <div class="ios-spinner" style="margin-bottom:12px;"></div>
+      <div class="text-subhead" style="color:var(--label-2);">Preparing payment…</div>
+    </div>
+    <div id="widgetError" style="display:none;" class="error-box">
+      <div class="text-headline" style="color:var(--ios-red);margin-bottom:6px;">Payment Unavailable</div>
+      <div class="text-subhead" style="color:var(--label-2);" id="errorMsg"></div>
+    </div>
+    <div id="widget-container" style="display:none;"></div>
+  </div>
+
+  <div class="summary-side">
+    <div class="text-headline" style="margin-bottom:16px;">Order Summary</div>
+    <div class="ios-card" style="margin-bottom:16px;">
+      <div id="summaryItems"></div>
+    </div>
+    <div style="background:var(--bg-tertiary);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:16px;">
+      <div class="text-caption-2" style="color:var(--label-2);margin-bottom:3px;text-transform:uppercase;letter-spacing:1px;">Order Reference</div>
+      <div style="font-family:monospace;font-size:12px;color:var(--ios-blue);word-break:break-all;" id="refVal">—</div>
+    </div>
+    <div class="test-note">
+      <div class="text-footnote" style="font-weight:600;color:var(--ios-green);margin-bottom:6px;">Test Cards</div>
+      <div class="text-caption-1" style="color:var(--label-2);line-height:1.9;">
+        ✅ Visa: 4111 1111 1111 1111<br>
+        ✅ Master: 5105 1051 0510 5100<br>
+        ❌ Decline: 4000 0000 0000 0002<br>
+        Expiry: any future · CVV: any 3
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const params=new URLSearchParams(window.location.search);
+  const tableId=params.get('tableId')||'1';
+  const isGuest=params.get('guest')==='1';
+  document.getElementById('backLink').href=isGuest?`/guest.html?tableId=${tableId}`:'/';
+
+  async function api(method,path,body){
+    const r=await fetch(path,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+    return r.json();
+  }
+
+  async function init(){
+    const inv=await api('GET',`/api/tables/${tableId}/invoice`);
+    if(inv.items&&inv.items.length>0){
+      document.getElementById('summaryItems').innerHTML=`
+        ${inv.items.map(i=>`<div class="ios-card-row">
+          <span style="font-size:20px">${i.emoji}</span>
+          <span class="ios-card-row-label">${i.name} ×${i.qty}</span>
+          <span style="font-weight:600;font-size:14px;">${(i.price*i.qty).toFixed(2)}</span>
+        </div>`).join('')}
+        <div class="ios-card-row"><span class="ios-card-row-label" style="color:var(--label-2)">Subtotal</span><span>${inv.subtotal.toFixed(2)} SAR</span></div>
+        <div class="ios-card-row"><span class="ios-card-row-label" style="color:var(--label-2)">VAT 15%</span><span>${inv.vat.toFixed(2)} SAR</span></div>
+        <div class="ios-card-row" style="padding:14px 16px;">
+          <span style="font-size:17px;font-weight:600;">Total</span>
+          <span style="font-size:20px;font-weight:700;color:var(--ios-blue);">${inv.total.toFixed(2)} SAR</span>
+        </div>`;
+    }
+
+    const data=await api('POST','/api/payment/checkout',{tableId});
+    if(!data.checkoutId){
+      document.getElementById('widgetLoader').style.display='none';
+      document.getElementById('widgetError').style.display='block';
+      document.getElementById('errorMsg').textContent=data.error||JSON.stringify(data.details||data);
+      return;
+    }
+    document.getElementById('refVal').textContent=data.merchantTransactionId;
+    sessionStorage.setItem('merchantTransactionId',data.merchantTransactionId);
+    sessionStorage.setItem('tableId',tableId);
+    loadWidget(data.checkoutId,data.merchantTransactionId);
+  }
+
+  function loadWidget(checkoutId,mtid){
+    const successUrl=`${window.location.origin}/success.html?tableId=${tableId}&mtid=${mtid}`;
+    const container=document.getElementById('widget-container');
+    container.innerHTML=`<form action="${successUrl}" class="paymentWidgets" data-brands="VISA MASTER AMEX MADA"></form>`;
+    const s=document.createElement('script');
+    s.src=`https://oppwa.com/v1/paymentWidgets.js?checkoutId=${checkoutId}`;
+    s.async=true;
+    s.onload=()=>{document.getElementById('widgetLoader').style.display='none';container.style.display='block';};
+    s.onerror=()=>{document.getElementById('widgetLoader').style.display='none';document.getElementById('widgetError').style.display='block';document.getElementById('errorMsg').textContent='Could not load HyperPay widget.';};
+    document.body.appendChild(s);
+  }
+
+  init();
+</script>
+</body>
+</html>
