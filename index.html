@@ -197,7 +197,7 @@ function renderTableGrid(){
 }
 
 async function openTable(id){
-  activeTableId=id;pendingOrder={};
+  id=parseInt(id);activeTableId=id;pendingOrder={};
   const t=tables.find(x=>x.id===id);
   document.getElementById('panelTitle').textContent=t.name;
   document.getElementById('tablePanel').classList.add('open');
@@ -292,16 +292,17 @@ function adjQty(id,d){
   if(btn){btn.disabled=pc===0;btn.textContent=`Add ${pc>0?pc+' Item'+(pc>1?'s':''):' Items'} to Order`;}
 }
 
-async function seatTable(id){await api('POST',`/api/tables/${id}/seat`);await loadTables();const t=tables.find(x=>x.id===id);renderPanel(t);toast(`${t.name} seated`);}
+async function seatTable(id){id=parseInt(id);await api('POST',`/api/tables/${id}/seat`);await loadTables();const t=tables.find(x=>x.id===id);renderPanel(t);toast(`${t.name} seated`);}
 async function submitOrder(id){
+  id=parseInt(id);
   const items=Object.entries(pendingOrder).map(([menuItemId,qty])=>({menuItemId,qty}));
   if(!items.length)return;
   const t=await api('POST',`/api/tables/${id}/order`,{items});
   const u=tables.find(x=>x.id===id);Object.assign(u,t);pendingOrder={};renderPanel(u);updateStats();toast('Order added ✓');
 }
-async function markServed(tid,oid){const t=await api('POST',`/api/tables/${tid}/order/${oid}/serve`);const u=tables.find(x=>x.id===tid);Object.assign(u,t);renderPanel(u);toast('Marked served');}
-async function clearTable(id){if(!confirm('Clear this table?'))return;await api('POST',`/api/tables/${id}/clear`);await loadTables();closePanel();toast('Table cleared');}
-function goToPayment(id){closePanel();window.location.href=`/payment.html?tableId=${id}`;}
+async function markServed(tid,oid){tid=parseInt(tid);const t=await api('POST',`/api/tables/${tid}/order/${oid}/serve`);const u=tables.find(x=>x.id===tid);Object.assign(u,t);renderPanel(u);toast('Marked served');}
+async function clearTable(id){id=parseInt(id);if(!confirm('Clear this table?'))return;await api('POST',`/api/tables/${id}/clear`);await loadTables();closePanel();toast('Table cleared');}
+function goToPayment(id){closePanel();window.location.href=`/payment.html?tableId=${parseInt(id)}`;}
 
 function renderMenuPreview(){
   const cats=['All',...new Set(menu.map(m=>m.category))];
